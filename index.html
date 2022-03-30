@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inyeccion Mysql</title>
+    <style>
+        table{
+            color: blue;
+            border: 5px red double;
+            font-family: cursive;
+            font-weight: lighter;
+            background-color: beige;
+            width: auto;
+        }
+        .azul{
+            color: blue;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            font-weight: lighter;
+            font-size: medium;
+            font-style: initial;
+        }
+        .rojo{
+            color: red;
+            font-size: medium;
+            font-weight: 200;
+            font-style: italic;
+            font-family: cursive;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<!--     Es un comentario en html  -->
+<?php
+//    echo "<p class='azul'>Éste es un texto Azul</p>";
+//    echo "<p class='rojo'>Éste es un texto Rojo</p>";
+//Hagamos un formulario en PHP
+//En una Tabla
+
+use LDAP\Result;
+
+if(!isset($_GET["va"]))
+{
+echo "
+        <form action='' method='get'>
+        <table align='center'>
+        <tr><td>
+            <label>Indique Número de Cédula</label>
+            <input type='text' name='cedula' placeholder='Numero de Cédula' require>
+        </td></tr>
+        <tr><td>
+            <label>Pulse aquí, para</label>
+            <input type='submit' name='va'value='Procesar'>
+        </td></tr>
+        <tr><td>
+            <label>Pulse aquí, para</label>
+            <input type='reset' value='Limpiar'   >
+        </td></tr>
+        </table>
+        </form>
+    ";
+} else {
+    echo "<p class='azul' align='center'>Se procesa evitando la Inyección SQL usando la función mysqli_real_escape_string(\$coneccion,\$_GET[\"\$cedula\"])</p>";
+    echo "<p class='azul' align='center'>Pasé después del formulario</p>";
+    $server="localhost";
+    $user_name="root";
+    $password="";
+    $db_name="prueba";
+    $coneccion=mysqli_connect($server,$user_name,$password) or die ("<p class='rojo'>No se conectó al servidor $server</p>");
+    //$cedula=$_GET["cedula"];
+    $cedula=mysqli_real_escape_string($coneccion,$_GET["cedula"]);
+    echo ("<p class='azul'>Se conectó al servidor $server</p>");
+    mysqli_select_db($coneccion,$db_name) or die ("<p class='rojo'>No se accesó la Base de Datos $db_name</p>");
+    echo "<p class='azul'>Se accesó la Base de Datos $db_name</p>";
+    /*
+    Éste código para eliminar las fila de la tabla
+    $query="DELETE FROM CLIENTES WHERE CEDULA='$cedula'";
+    echo "<p class='rojo'>$query</p>";
+    $resulset=mysqli_query($coneccion,$query);
+    */
+    if (mysqli_affected_rows($coneccion)) echo "<p class='rojo'>Se elimino" . mysqli_affected_rows($coneccion) ."</p>";
+    $query="SELECT * FROM CLIENTES WHERE CEDULA = '$cedula'";
+    echo "<p class='rojo'>$query</p>";
+    $resulset=mysqli_query($coneccion,$query);
+    echo "<table align='center'>";
+    if (mysqli_affected_rows($coneccion)){
+    while ($recordset=mysqli_fetch_array($resulset,MYSQLI_ASSOC))
+    {
+        echo "<tr><td><p class='azul'>Número de Cédula " . $recordset["CEDULA"] . "</td><td>  " . $recordset["NOMBRE"] . "</td><td> Edad del Participante " . $recordset["EDAD"]; //. "</td><td> Semestre " . $recordset["SEMESTRE"] . "</td><td> Horas de Servicio Comunitario " . $recordset["HORAS"] . "</td></p>";
+    }
+    echo "</table>";
+   
+    } else {
+        echo "<p class='rojo'>No se proceso el Número de Cédula $cedula, no hay registro en la tabla</p>";
+    }
+    mysqli_close($coneccion);
+    echo ("<p class='azul'>Se cerró la comunicación con el servidor $server</p>");
+}
+    ?> 
+</body>
+</html>
